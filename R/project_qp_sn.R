@@ -29,4 +29,10 @@ code4326 <- "+init=epsg:4326"
 qp4326 <- spTransform(qp, CRS(code4326))
 
 
+# Export shape  
+writeOGR()
+
+writeOGR(obj = qp4326, dsn=paste0(di, 'data_raw/geoinfo/'), 
+         layer = 'q_pyr_sn_4326', driver = 'ESRI Shapefile')
+
 
