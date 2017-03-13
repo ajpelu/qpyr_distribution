@@ -1,0 +1,73 @@
+---
+title: "Distribution of Q. pyrenaica forests "
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: fill
+    orientation: rows
+---
+
+```{r setup, include=FALSE}
+library('flexdashboard')
+```
+
+```{r pacakges, message=FALSE, warning=FALSE}
+library('rgdal')
+library("leaflet") 
+library("sp")
+library("raster")
+library("dplyr")
+```
+
+
+
+```{r readData}
+# mymachine <- '/Users/ajpeluLap/' 
+mymachine <- '/Users/ajpelu/' 
+di <- paste0(mymachine, 'Dropbox/phd/phd_repos/qpyr_distribution/')
+
+# Read spatial data 
+qp<- rgdal::readOGR(dsn=paste0(di, 'data_raw/geoinfo/'),
+                     layer = 'q_pyr_sn_4326', verbose = FALSE, encoding = "UTF-8")
+```
+
+
+
+```{r}
+mymap <- leaflet() %>%
+  addTiles(urlTemplate = "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+           attribution = '<a href="https://carto.com/attributions">CARTO</a>',
+           group = 'Basemap') %>%
+
+  addWMSTiles('http://www.ideandalucia.es/services/toporaster10/wms?',
+              layers = 'toporaster10',
+              options = WMSTileOptions(format = "image/png", transparent = FALSE),
+              attribution = '<a href="http://www.juntadeandalucia.es/institutodeestadisticaycartografia" target="_blank">Instituto de Estadística y Cartografía de Andalucía</a>',
+              group = 'Topographical') %>%
+
+  addProviderTiles("Esri.WorldImagery", group='Satellite') %>%
+
+  # Layers control
+  addLayersControl(position = 'bottomright',
+                   baseGroups = c("Basemap", "Topographical", "Satellite"),
+                   overlayGroups = c('Quercus pyrenaica forests'),
+                   options = layersControlOptions(collapsed = FALSE))
+
+
+```
+
+
+Distribution map
+=======================================================================
+
+```{r}
+popup_qp <- paste0("<strong>Population id:</strong> ", qp$POBLACION,
+                   "<br><strong>Name:</strong> ", qp$LOCALIDAD,
+                   "<br><strong>Valley:</strong> ", qp$VALLE)
+
+
+mymap %>%  addPolygons(data = qp,
+                group= 'Quercus pyrenaica forests',
+                fillColor = 'red', fillOpacity = 0.4, 
+                stroke = FALSE, popup = popup_qp)
+```
+

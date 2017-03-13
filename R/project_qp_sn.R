@@ -11,14 +11,14 @@ library('raster')
 
 # ------
 # Set dir 
-# mymachine <- '/Users/ajpelu/' 
-mymachine <- '/Users/ajpeluLap/'
+mymachine <- '/Users/ajpelu/' 
+# mymachine <- '/Users/ajpeluLap/'
 di <- paste0(mymachine, 'Dropbox/phd/phd_repos/qpyr_distribution/')
 # ------ 
 
 # Read spatial distribution
 qp <- rgdal::readOGR(dsn=paste0(di, 'data_raw/geoinfo/'), 
-                        layer = 'roble_sin_proj', verbose = TRUE)
+                        layer = 'roble_sin_proj', verbose = TRUE, encoding = "UTF-8")
 
 # Set projection (ED50 )
 proj4string(qp) <- CRS("+init=epsg:23030")
@@ -28,11 +28,8 @@ proj4string(qp) <- CRS("+init=epsg:23030")
 code4326 <- "+init=epsg:4326"
 qp4326 <- spTransform(qp, CRS(code4326))
 
-
-# Export shape  
-writeOGR()
-
 writeOGR(obj = qp4326, dsn=paste0(di, 'data_raw/geoinfo/'), 
-         layer = 'q_pyr_sn_4326', driver = 'ESRI Shapefile')
+         layer = 'q_pyr_sn_4326', driver = 'ESRI Shapefile', 
+         encoding = "UTF-8", overwrite_layer = TRUE)
 
 
