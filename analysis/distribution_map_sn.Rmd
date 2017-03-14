@@ -21,19 +21,36 @@ library("dplyr")
 
 
 ```{r readData}
-# mymachine <- '/Users/ajpeluLap/' 
-mymachine <- '/Users/ajpelu/' 
+mymachine <- '/Users/ajpeluLap/' 
+# mymachine <- '/Users/ajpelu/' 
 di <- paste0(mymachine, 'Dropbox/phd/phd_repos/qpyr_distribution/')
 
 # Read spatial data 
 qp<- rgdal::readOGR(dsn=paste0(di, 'data_raw/geoinfo/'),
                      layer = 'q_pyr_sn_4326', verbose = FALSE, encoding = "UTF-8")
+
+### --- Read limits of Sierra Nevada Protected area
+mydsn = paste0(mymachine, '/Dropbox/carto_public/EENNPP/InfGeografica/InfVectorial/Shapes/ED50_30')
+enp <- readOGR(dsn=mydsn, layer = 'EENNPP', encoding="UTF-8", verbose = FALSE)
+
+# Sierra Nevada limits 
+enp_r <- spTransform(enp, CRS("+init=epsg:4326"))
+
+# Select Sierra Nevada 
+sn <- subset(enp_r, NOMBRE == 'SIERRA NEVADA' & FIGURA == 'Espacio Natural')
+sn_nat <- subset(enp_r, NOMBRE == 'SIERRA NEVADA' & FIGURA == 'Parque Nacional')
+
 ```
 
 
 
 ```{r}
 mymap <- leaflet() %>%
+  addWMSTiles('http://www.ideandalucia.es/wms/mdt_2005?',
+              layers = 'Sombreado_10',
+              options = WMSTileOptions(format = "image/png", transparent = TRUE),
+              attribution = '<a href="http://www.juntadeandalucia.es/institutodeestadisticaycartografia" target="_blank">Instituto de Estadística y Cartografía de Andalucía</a>', 
+              group = 'Hillshade') %>% 
   addTiles(urlTemplate = "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
            attribution = '<a href="https://carto.com/attributions">CARTO</a>',
            group = 'Basemap') %>%
@@ -48,9 +65,9 @@ mymap <- leaflet() %>%
 
   # Layers control
   addLayersControl(position = 'bottomright',
-                   baseGroups = c("Basemap", "Topographical", "Satellite"),
-                   overlayGroups = c('Quercus pyrenaica forests'),
-                   options = layersControlOptions(collapsed = FALSE))
+                   baseGroups = c("Hillshade", "Basemap", "Topographical", "Satellite"),
+                   overlayGroups = c('Natural Protected Area', 'Quercus pyrenaica forests'),
+                   options = layersControlOptions(collapsed = TRUE))
 
 
 ```
@@ -65,9 +82,13 @@ popup_qp <- paste0("<strong>Population id:</strong> ", qp$POBLACION,
                    "<br><strong>Valley:</strong> ", qp$VALLE)
 
 
-mymap %>%  addPolygons(data = qp,
+mymap %>% 
+  addPolygons(data = qp,
                 group= 'Quercus pyrenaica forests',
                 fillColor = 'red', fillOpacity = 0.4, 
-                stroke = FALSE, popup = popup_qp)
+                stroke = FALSE, popup = popup_qp) %>% 
+  addPolygons(data = sn, 
+              group = 'Natural Protected Area',
+              fill=FALSE, color = 'blue', weight=2.5) 
 ```
 
