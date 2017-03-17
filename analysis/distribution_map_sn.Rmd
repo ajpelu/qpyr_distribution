@@ -98,8 +98,9 @@ popup_iv <- paste0("<strong>Pixel id:</strong> ", modis_iv$id)
 
 mymap %>% 
   addPolygons(data = modis_iv,
+              group = 'MOD13Q1 pixels',
               fillColor = 'green', fillOpacity = 0.4, color = 'green', 
-                stroke = TRUE, popup = popup_iv) %>% 
+                stroke = FALSE, popup = popup_iv) %>% 
   addPolygons(data = qp,
                 group= 'Quercus pyrenaica forests',
                 fillColor = 'red', fillOpacity = 0.4, 
