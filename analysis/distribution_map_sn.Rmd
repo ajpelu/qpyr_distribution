@@ -21,17 +21,19 @@ library("dplyr")
 
 
 ```{r readData}
-mymachine <- '/Users/ajpeluLap/' 
-# mymachine <- '/Users/ajpelu/' 
-di <- paste0(mymachine, 'Dropbox/phd/phd_repos/qpyr_distribution/')
+machine <- 'ajpelu' 
+# machine <- 'ajpeluLap' 
+
+di <- paste('/Users/', machine, '/Dropbox/phd/phd_repos/qpyr_distribution', sep='')
 
 # Read spatial data 
-qp<- rgdal::readOGR(dsn=paste0(di, 'data_raw/geoinfo/'),
+qp<- rgdal::readOGR(dsn=paste0(di,'/data_raw/geoinfo/'),
                      layer = 'q_pyr_sn_4326', verbose = FALSE, encoding = "UTF-8")
 
 ### --- Read limits of Sierra Nevada Protected area
-mydsn = paste0(mymachine, '/Dropbox/carto_public/EENNPP/InfGeografica/InfVectorial/Shapes/ED50_30')
+mydsn = paste0('/Users/', machine, '/Dropbox/carto_public/EENNPP/InfGeografica/InfVectorial/Shapes/ED50_30')
 enp <- readOGR(dsn=mydsn, layer = 'EENNPP', encoding="UTF-8", verbose = FALSE)
+proj4string(enp) <- CRS("+init=epsg:23030")
 
 # Sierra Nevada limits 
 enp_r <- spTransform(enp, CRS("+init=epsg:4326"))
@@ -40,12 +42,21 @@ enp_r <- spTransform(enp, CRS("+init=epsg:4326"))
 sn <- subset(enp_r, NOMBRE == 'SIERRA NEVADA' & FIGURA == 'Espacio Natural')
 sn_nat <- subset(enp_r, NOMBRE == 'SIERRA NEVADA' & FIGURA == 'Parque Nacional')
 
+
+# Read modis iv pixels 
+modis_iv <- rgdal::readOGR(dsn=paste0(di, '/data_raw/geoinfo/'),
+                     layer = 'iv_malla_modis_qp_pol', verbose = FALSE, encoding = "UTF-8")
+
 ```
 
 
 
 ```{r}
+# Set spatial extension 
+myext <- extent(qp)
+
 mymap <- leaflet() %>%
+  fitBounds(myext@xmin, myext@ymin, myext@xmax, myext@ymax) %>% 
   addWMSTiles('http://www.ideandalucia.es/wms/mdt_2005?',
               layers = 'Sombreado_10',
               options = WMSTileOptions(format = "image/png", transparent = TRUE),
@@ -66,7 +77,9 @@ mymap <- leaflet() %>%
   # Layers control
   addLayersControl(position = 'bottomright',
                    baseGroups = c("Hillshade", "Basemap", "Topographical", "Satellite"),
-                   overlayGroups = c('Natural Protected Area', 'Quercus pyrenaica forests'),
+                   overlayGroups = c('Natural Protected Area', 
+                                     'Quercus pyrenaica forests',
+                                     'MOD13Q1 pixels'),
                    options = layersControlOptions(collapsed = TRUE))
 
 
@@ -81,8 +94,12 @@ popup_qp <- paste0("<strong>Population id:</strong> ", qp$POBLACION,
                    "<br><strong>Name:</strong> ", qp$LOCALIDAD,
                    "<br><strong>Valley:</strong> ", qp$VALLE)
 
+popup_iv <- paste0("<strong>Pixel id:</strong> ", modis_iv$id)
 
 mymap %>% 
+  addPolygons(data = modis_iv,
+              fillColor = 'green', fillOpacity = 0.4, color = 'green', 
+                stroke = TRUE, popup = popup_iv) %>% 
   addPolygons(data = qp,
                 group= 'Quercus pyrenaica forests',
                 fillColor = 'red', fillOpacity = 0.4, 
