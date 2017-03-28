@@ -82,7 +82,8 @@ mymap <- leaflet() %>%
   # Layers control
   addLayersControl(position = 'bottomright',
                    baseGroups = c("Hillshade", "Basemap", "Topographical", "Satellite"),
-                   overlayGroups = c('Natural Protected Area', 
+                   overlayGroups = c('Irrigation Channels',
+                                     'Natural Protected Area', 
                                      'Quercus pyrenaica forests',
                                      'MOD13Q1 pixels'),
                    options = layersControlOptions(collapsed = TRUE))
@@ -106,7 +107,7 @@ popup_acequia <- paste0("<strong>Code:</strong> ", acequias_r$COD_ACEQUI,
 
 mymap %>% 
   addPolylines(data=acequias_r, color='blue', 
-               group='Acequias', weight= 3,
+               group='Irrigation Channels', weight= 3,
                popup = popup_acequia) %>%
   addPolygons(data = modis_iv,
               group = 'MOD13Q1 pixels',
