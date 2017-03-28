@@ -47,8 +47,13 @@ sn_nat <- subset(enp_r, NOMBRE == 'SIERRA NEVADA' & FIGURA == 'Parque Nacional')
 modis_iv <- rgdal::readOGR(dsn=paste0(di, '/data_raw/geoinfo/'),
                      layer = 'iv_malla_modis_qp_pol', verbose = FALSE, encoding = "UTF-8")
 
-```
+# Read irrigation channel 
+acequias <- rgdal::readOGR(dsn=paste0(di, '/data_raw/geoinfo/'),
+                           layer = 'acequias_pn_snevada', verbose = FALSE,
+                           encoding = 'UTF-8') 
 
+acequias_r <- spTransform(acequias, crs(enp_r))
+```
 
 
 ```{r}
@@ -96,7 +101,13 @@ popup_qp <- paste0("<strong>Population id:</strong> ", qp$POBLACION,
 
 popup_iv <- paste0("<strong>Pixel id:</strong> ", modis_iv$id)
 
+popup_acequia <- paste0("<strong>Code:</strong> ", acequias_r$COD_ACEQUI,
+                   "<br><strong>Name:</strong> ", acequias_r$NOM_ACEQUI)
+
 mymap %>% 
+  addPolylines(data=acequias_r, color='blue', 
+               group='Acequias', weight= 3,
+               popup = popup_acequia) %>%
   addPolygons(data = modis_iv,
               group = 'MOD13Q1 pixels',
               fillColor = 'green', fillOpacity = 0.4, color = 'green', 
@@ -107,6 +118,6 @@ mymap %>%
                 stroke = FALSE, popup = popup_qp) %>% 
   addPolygons(data = sn, 
               group = 'Natural Protected Area',
-              fill=FALSE, color = 'blue', weight=2.5) 
+              fill=FALSE, color = 'red', weight=2.5) 
 ```
 
